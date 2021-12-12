@@ -146,7 +146,96 @@ X = 'Вера Константиновна' ;
 
 ## Определение степени родства
 
-Приведите описание метода решения, важные фрагменты исходного кода, протокол работы.
+Предикат ```find_relation(X, Y)``` выводит информацию о связи между X и Y. Так как связи между родственниками можно представить в виде графа, тогда можно использовать алгоритм поиска для нахождения "пути" от одного человека до другого. Я использовал поиск в ширину,
+Для начала требуется задать ребра:
+```prolog
+move(A, B):-
+    parent(A, B);
+    parent(B, A);
+    sibling(A, B);
+    second_cousin(A, B);
+    marriage(A, B).
+```
+Теперь реализуем сам поиск в ширину:
+```prolog
+prolong([X|T],[Y,X|T]):-
+    move(X, Y), not(member(Y,[X|T])).
+
+bfs([[X|T]|_], X, [X|T]).
+bfs([X|Q], T, P):-
+    findall(Z, prolong(X, Z), L),
+    append(Q, L, Q1), !,
+    bfs(Q1, T, P).
+bfs([_|Q], T, P):-
+    bfs(Q, T, P).
+
+bfs_search(X, Y, P):-
+    bfs([[X]], Y, P1),
+    reverse(P1, P).
+```
+Сам предикат ``` find_relation(X, Y)```, а также предикаты для вывода.
+```prolog
+relation('son', A, B):-
+    parent(B, A),
+    sex(A, 'M').
+relation('daughter', A, B):-
+    parent(B, A),
+    sex(A, 'F').
+relation('father', A, B):-
+    parent(A, B),
+    sex(A, 'M').
+relation('mother', A, B):-
+    parent(A, B),
+    sex(A, 'F').
+relation('brother', A, B):-
+    sibling(A, B),
+    sex(A, 'M').
+relation('sister', A, B):-
+    sibling(A, B),
+    sex(A, 'F').
+relation('second brother', A, B):-
+    second_cousin(A, B),
+    sex(A, 'M').
+relation('second sister', A, B):-
+    second_cousin(A, B),
+    sex(A, 'F').
+relation('husband', A, B):-
+    marriage(A,B),
+    sex(A, 'M').
+relation('wife', A, B):-
+    marriage(A,B),
+    sex(A, 'F').
+
+write_path([A, B|T]):-
+    relation(S, A, B),
+    write(S),
+    write(" of "),
+    write_path([B|T]).
+write_path(_).
+
+find_relation(X, Y):-
+    bfs_search(X, Y, P),
+    write(X),
+    write(" is "),
+    write_path(P),
+    !,
+    write(Y),
+    write(".\n").
+```
+Пример работы:
+```prolog
+?- find_relation('Николай 2', 'Алексей Николаевич').
+Николай 2 is father of Алексей Николаевич.
+
+?- find_relation('Алексей Николаевич', 'Николай 2').
+Алексей Николаевич is son of Николай 2.
+
+?- find_relation('Николай 2', 'Владимир Александрович').
+Николай 2 is son of brother of Владимир Александрович.
+
+?- find_relation('Татьяна Николаевна', 'Мария Павловна').
+Татьяна Николаевна is second sister of daughter of son of Мария Павловна.
+```
 
 ## Естественно-языковый интерфейс
 
