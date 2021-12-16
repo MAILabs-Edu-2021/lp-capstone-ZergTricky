@@ -20,11 +20,13 @@ marriage(A, B):-
     bagof(Z, both(Z,A,B), _).
 
 
-
+relation('child', A, B):-
+    parent(B, A).
+relation('children', A, B):-
+    parent(B, A).
 relation('son', A, B):-
     parent(B, A),
     sex(A, 'M').
-
 relation('daughter', A, B):-
     parent(B, A),
     sex(A, 'F').
@@ -37,7 +39,13 @@ relation('mother', A, B):-
 relation('brother', A, B):-
     sibling(A, B),
     sex(A, 'M').
+relation('brothers', A, B):-
+    sibling(A, B),
+    sex(A, 'M').
 relation('sister', A, B):-
+    sibling(A, B),
+    sex(A, 'F').
+relation('sisters', A, B):-
     sibling(A, B),
     sex(A, 'F').
 relation('second brother', A, B):-
